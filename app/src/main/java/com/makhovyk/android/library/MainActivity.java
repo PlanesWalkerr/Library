@@ -36,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 count++;
-                for (int i = 0;i<1000; i++) {
+                for (int i = 0;i<100; i++) {
                     Logger.d(TAG, "clicked " + String.valueOf(count) + " times.");
                 }
             }
