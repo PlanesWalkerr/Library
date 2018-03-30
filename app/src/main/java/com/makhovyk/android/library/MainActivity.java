@@ -24,6 +24,7 @@ public class MainActivity extends AppCompatActivity {
     };
     int count = 0;
     Button button;
+    Button zipButton;
     final String TAG = "logTAG";
 
     @Override
@@ -32,6 +33,7 @@ public class MainActivity extends AppCompatActivity {
         checkPermissions();
         setContentView(R.layout.activity_main);
         button = findViewById(R.id.log_button);
+        zipButton = findViewById(R.id.zipLog);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -39,6 +41,12 @@ public class MainActivity extends AppCompatActivity {
                 for (int i = 0;i<100; i++) {
                     Logger.d(TAG, "clicked " + String.valueOf(count) + " times.");
                 }
+            }
+        });
+        zipButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Logger.zipLog();
             }
         });
     }

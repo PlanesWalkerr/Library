@@ -3,8 +3,11 @@ package com.makhovyk.android.loglibrary;
 import android.os.Environment;
 import android.util.Log;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -12,12 +15,17 @@ import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 /**
  * Created by misha on 3/30/18.
  */
 
 public class Logger {
+
+    private static final int BUFFER = 1024;
+
     public static boolean isZipable = true;
     public static boolean rewriteOnFilling = true;
     public static boolean isEnabled = true;
@@ -83,6 +91,39 @@ public class Logger {
     }
 
     public static void zipLog(){
+        PATH = Environment.getExternalStorageDirectory().getPath() + "/" + appFolderName + "/";
+        directory = new File(PATH);
+        directory.mkdirs();
+        file = new File(directory,filename);
+        zip(directory+"/"+filename, directory+"/zipLog.zip");
+    }
 
+    private static void zip(String file, String zipFileName) {
+        try {
+            BufferedInputStream origin = null;
+            FileOutputStream dest = new FileOutputStream(zipFileName);
+            ZipOutputStream out = new ZipOutputStream(new BufferedOutputStream(
+                    dest));
+            byte data[] = new byte[BUFFER];
+
+
+                Log.v("Compress", "Adding: " + file);
+                FileInputStream fi = new FileInputStream(file);
+                origin = new BufferedInputStream(fi, BUFFER);
+
+                ZipEntry entry = new ZipEntry(file.substring(file.lastIndexOf("/") + 1));
+                out.putNextEntry(entry);
+                int count;
+
+                while ((count = origin.read(data, 0, BUFFER)) != -1) {
+                    out.write(data, 0, count);
+                }
+                origin.close();
+
+
+            out.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
