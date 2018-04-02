@@ -11,8 +11,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.RandomAccessFile;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.zip.ZipEntry;
@@ -35,60 +33,46 @@ public class Logger {
     private static boolean isEnabled = true;
     private static String appFolderName = "LogLibrary";
     private static String filename = "log.dat";
-    private static RandomAccessFile fileWithSize;
 
 
-    public static void d(String tag, String msg) {
+    public static int d(String tag, String msg) {
+        int result = 0;
         if (isEnabled) {
-            configFile();
+            configDir();
             file = new File(directory, filename);
             Log.d(tag, PATH);
-            int result = 0;
+
             try {
                 if (!file.exists()) {
-
                     file.createNewFile();
-//                    file.delete();
-//                    fileWithSize = new RandomAccessFile(PATH + "/" + filename,"rw");
-//                    fileWithSize.setLength(sizeInMB*sizeInMB);
-//                    Log.d(tag, "created");
 
                 }
-                if (file.length() > (maxSize * maxSize)) {
+                if ((file.length() > (maxSize * maxSize)) && rewriteOnFilling) {
                     Log.d(tag, "size " + String.valueOf((double) file.length() / (maxSize * maxSize)) + "Mb");
-                    if (rewriteOnFilling) {
-                        new FileOutputStream(file);
-                    }
+                    new FileOutputStream(file);
                 }
                 String timeLog = new SimpleDateFormat("dd.MM.yy hh:mm:ss").format(new Date());
                 BufferedWriter bw = new BufferedWriter(new FileWriter(file, true));
                 String line = timeLog + " (" + tag + ")\t" + msg + "\n";
                 bw.append(line);
                 bw.close();
-                //Log.d(tag, "success");
                 result = 1;
             } catch (IOException e) {
                 e.printStackTrace();
-//            }finally {
-//                if (file!=null){
-//                    try {
-//                        fileWithSize.close();
-//                    } catch (IOException e) {
-//                        e.printStackTrace();
-//                    }
-//                }
             }
 
         }
+        return result;
     }
 
-    public static void e(String tag, String msg) {
+    public static int e(String tag, String msg) {
 
+        return 0;
     }
 
     public static File zipLog() {
         if (isZipable) {
-            configFile();
+            configDir();
             file = new File(directory, filename);
             return zip(directory + "/" + filename, directory + "/zipLog.zip");
         }
@@ -99,8 +83,7 @@ public class Logger {
         try {
             BufferedInputStream origin = null;
             FileOutputStream dest = new FileOutputStream(zipFileName);
-            ZipOutputStream out = new ZipOutputStream(new BufferedOutputStream(
-                    dest));
+            ZipOutputStream out = new ZipOutputStream(new BufferedOutputStream(dest));
             byte data[] = new byte[BUFFER];
 
             FileInputStream fi = new FileInputStream(file);
@@ -114,8 +97,6 @@ public class Logger {
                 out.write(data, 0, count);
             }
             origin.close();
-
-
             out.close();
         } catch (Exception e) {
             e.printStackTrace();
@@ -136,9 +117,7 @@ public class Logger {
     }
 
     public static void setFilename(String filename) {
-        PATH = Environment.getExternalStorageDirectory().getPath() + "/" + appFolderName + "/";
-        directory = new File(PATH);
-        directory.mkdirs();
+        configDir();
         File oldFile = new File(directory, Logger.filename);
         File latestname = new File(directory, filename);
         oldFile.renameTo(latestname);
@@ -169,7 +148,7 @@ public class Logger {
         Logger.rewriteOnFilling = rewriteOnFilling;
     }
 
-    private static void configFile() {
+    private static void configDir() {
         PATH = Environment.getExternalStorageDirectory().getPath() + "/" + appFolderName + "/";
         directory = new File(PATH);
         directory.mkdirs();
