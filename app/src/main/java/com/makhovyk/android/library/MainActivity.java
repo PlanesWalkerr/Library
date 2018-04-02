@@ -38,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
         zipButton = findViewById(R.id.zipLog);
         renameButton = findViewById(R.id.renameLog);
         sendButton = findViewById(R.id.sendLog);
+        Logger.setClearOnFilling(false);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -45,7 +46,8 @@ public class MainActivity extends AppCompatActivity {
 //                for (int i = 0; i < 2; i++) {
 //                    Logger.d(TAG, "clicked " + String.valueOf(count) + " times.");
 //                }
-                Logger.e(TAG, "Error occured", "generated error");
+                //Logger.e(TAG, "Error occured", "generated error");
+                Logger.d(TAG, "sssssssss");
             }
         });
         zipButton.setOnClickListener(new View.OnClickListener() {
@@ -63,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Logger.sendLog(getApplicationContext(), new String[]{"goldenhead777@gmail.com"});
+                Logger.sendLog(getApplicationContext(), new String[]{"goldenhead777@gmail.com"}, "Logs");
             }
         });
     }

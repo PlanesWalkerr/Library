@@ -29,8 +29,8 @@ public class Logger {
     private static final int BUFFER = 1024;
 
     private static boolean isZipable = true;
-    private static boolean rewriteOnFilling = true;
-    private static long maxSize = 1024;
+    private static boolean clearOnFilling = true;
+    private static long maxSize = 50;
     private static String PATH = "";
     private static File file;
     private static File directory;
@@ -52,14 +52,14 @@ public class Logger {
                     file.createNewFile();
                 }
                 Log.d(tag, "size " + String.valueOf((double) file.length()));
-                Log.d(tag, "removing first line");
 
-                removeFirstLine(directory + "/" + file);
-
-
-                if ((file.length() > (maxSize * maxSize)) && rewriteOnFilling) {
+                if (file.length() > (maxSize * maxSize)) {
                     Log.d(tag, "size " + String.valueOf((double) file.length() / (maxSize * maxSize)) + "Mb");
-                    new FileOutputStream(file);
+                    if (clearOnFilling) {
+                        new FileOutputStream(file);
+                    } else {
+                        removeFirstLine(file.getAbsolutePath());
+                    }
                 }
                 String timeLog = new SimpleDateFormat("dd.MM.yy hh:mm:ss").format(new Date());
                 BufferedWriter bw = new BufferedWriter(new FileWriter(file, true));
@@ -87,7 +87,7 @@ public class Logger {
                 file.createNewFile();
 
             }
-            if ((file.length() > (maxSize * maxSize)) && rewriteOnFilling) {
+            if ((file.length() > (maxSize * maxSize)) && clearOnFilling) {
                 Log.d(tag, "size " + String.valueOf((double) file.length() / (maxSize * maxSize)) + "Mb");
                 new FileOutputStream(file);
             }
@@ -174,12 +174,12 @@ public class Logger {
         Logger.maxSize = maxSize;
     }
 
-    public static boolean isRewriteOnFilling() {
-        return rewriteOnFilling;
+    public static boolean isClearOnFilling() {
+        return clearOnFilling;
     }
 
-    public static void setRewriteOnFilling(boolean rewriteOnFilling) {
-        Logger.rewriteOnFilling = rewriteOnFilling;
+    public static void setClearOnFilling(boolean clearOnFilling) {
+        Logger.clearOnFilling = clearOnFilling;
     }
 
     private static void configDir() {
@@ -188,9 +188,14 @@ public class Logger {
         directory.mkdirs();
     }
 
-    public static void sendLog(Context context, String emails[]) {
+    public static void sendLog(Context context, String emails[], String subject) {
         configDir();
-        file = new File(directory, zipFilename);
+        File file = null;
+        if (isZipable) {
+            file = new File(directory, zipFilename);
+        } else {
+            file = new File(directory, filename);
+        }
         Log.d("ss", file.getAbsolutePath());
         Uri path = Uri.fromFile(file);
         Intent emailIntent = new Intent(Intent.ACTION_SEND);
@@ -202,12 +207,12 @@ public class Logger {
             emailIntent.putExtra(Intent.EXTRA_STREAM, path);
         }
         // the mail subject
-        emailIntent.putExtra(Intent.EXTRA_SUBJECT, "Logs");
+        emailIntent.putExtra(Intent.EXTRA_SUBJECT, subject);
         context.startActivity(Intent.createChooser(emailIntent, "Send email..."));
     }
 
     private static void removeFirstLine(String fileName) throws IOException {
-        Log.d("newFile", fileName);
+        Log.d("ss", "removing line");
         RandomAccessFile raf = new RandomAccessFile(fileName, "rw");
         //Initial write position
         long writePosition = raf.getFilePointer();
@@ -226,6 +231,16 @@ public class Logger {
         }
         raf.setLength(writePosition);
         raf.close();
+    }
+
+    public static boolean clearLog() {
+        boolean result = false;
+        configDir();
+        file = new File(directory, filename);
+        if (file.exists()) {
+            result = file.delete();
+        }
+        return result;
     }
 
 }
