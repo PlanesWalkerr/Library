@@ -65,9 +65,33 @@ public class Logger {
         return result;
     }
 
-    public static int e(String tag, String msg) {
+    public static int e(String tag, String msg, String error) {
 
-        return 0;
+        int result = 0;
+        configDir();
+        file = new File(directory, filename);
+        Log.d(tag, PATH);
+
+        try {
+            if (!file.exists()) {
+                file.createNewFile();
+
+            }
+            if ((file.length() > (maxSize * maxSize)) && rewriteOnFilling) {
+                Log.d(tag, "size " + String.valueOf((double) file.length() / (maxSize * maxSize)) + "Mb");
+                new FileOutputStream(file);
+            }
+            String timeLog = new SimpleDateFormat("dd.MM.yy hh:mm:ss").format(new Date());
+            BufferedWriter bw = new BufferedWriter(new FileWriter(file, true));
+            String line = timeLog + " (" + tag + ")\t" + msg + "\t" + error + "\n";
+            bw.append(line);
+            bw.close();
+            result = 1;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return result;
     }
 
     public static File zipLog() {
