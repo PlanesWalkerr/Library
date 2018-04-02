@@ -1,5 +1,8 @@
 package com.makhovyk.android.loglibrary;
 
+import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Environment;
 import android.util.Log;
 
@@ -11,6 +14,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.zip.ZipEntry;
@@ -33,6 +37,7 @@ public class Logger {
     private static boolean isEnabled = true;
     private static String appFolderName = "LogLibrary";
     private static String filename = "log.dat";
+    private static String zipFilename = "/logZip.zip";
 
 
     public static int d(String tag, String msg) {
@@ -45,8 +50,13 @@ public class Logger {
             try {
                 if (!file.exists()) {
                     file.createNewFile();
-
                 }
+                Log.d(tag, "size " + String.valueOf((double) file.length()));
+                Log.d(tag, "removing first line");
+
+                removeFirstLine(directory + "/" + file);
+
+
                 if ((file.length() > (maxSize * maxSize)) && rewriteOnFilling) {
                     Log.d(tag, "size " + String.valueOf((double) file.length() / (maxSize * maxSize)) + "Mb");
                     new FileOutputStream(file);
@@ -83,7 +93,7 @@ public class Logger {
             }
             String timeLog = new SimpleDateFormat("dd.MM.yy hh:mm:ss").format(new Date());
             BufferedWriter bw = new BufferedWriter(new FileWriter(file, true));
-            String line = timeLog + " (" + tag + ")\t" + msg + "\t" + error + "\n";
+            String line = timeLog + " (" + tag + ")\t" + msg + "\t" + "[Error]" + error + "\n";
             bw.append(line);
             bw.close();
             result = 1;
@@ -98,7 +108,7 @@ public class Logger {
         if (isZipable) {
             configDir();
             file = new File(directory, filename);
-            return zip(directory + "/" + filename, directory + "/zipLog.zip");
+            return zip(directory + "/" + filename, directory + zipFilename);
         }
         return null;
     }
@@ -176,6 +186,46 @@ public class Logger {
         PATH = Environment.getExternalStorageDirectory().getPath() + "/" + appFolderName + "/";
         directory = new File(PATH);
         directory.mkdirs();
+    }
+
+    public static void sendLog(Context context, String emails[]) {
+        configDir();
+        file = new File(directory, zipFilename);
+        Log.d("ss", file.getAbsolutePath());
+        Uri path = Uri.fromFile(file);
+        Intent emailIntent = new Intent(Intent.ACTION_SEND);
+        // set the type to 'email'
+        emailIntent.setType("vnd.android.cursor.dir/email");
+        emailIntent.putExtra(Intent.EXTRA_EMAIL, emails);
+        // the attachment
+        if (file.exists()) {
+            emailIntent.putExtra(Intent.EXTRA_STREAM, path);
+        }
+        // the mail subject
+        emailIntent.putExtra(Intent.EXTRA_SUBJECT, "Logs");
+        context.startActivity(Intent.createChooser(emailIntent, "Send email..."));
+    }
+
+    private static void removeFirstLine(String fileName) throws IOException {
+        Log.d("newFile", fileName);
+        RandomAccessFile raf = new RandomAccessFile(fileName, "rw");
+        //Initial write position
+        long writePosition = raf.getFilePointer();
+        raf.readLine();
+        // Shift the next lines upwards.
+        long readPosition = raf.getFilePointer();
+
+        byte[] buff = new byte[1024];
+        int n;
+        while (-1 != (n = raf.read(buff))) {
+            raf.seek(writePosition);
+            raf.write(buff, 0, n);
+            readPosition += n;
+            writePosition += n;
+            raf.seek(readPosition);
+        }
+        raf.setLength(writePosition);
+        raf.close();
     }
 
 }

@@ -26,6 +26,7 @@ public class MainActivity extends AppCompatActivity {
     Button button;
     Button zipButton;
     Button renameButton;
+    Button sendButton;
     final String TAG = "logTAG";
 
     @Override
@@ -36,13 +37,14 @@ public class MainActivity extends AppCompatActivity {
         button = findViewById(R.id.log_button);
         zipButton = findViewById(R.id.zipLog);
         renameButton = findViewById(R.id.renameLog);
+        sendButton = findViewById(R.id.sendLog);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 count++;
-                for (int i = 0; i < 2; i++) {
-                    Logger.d(TAG, "clicked " + String.valueOf(count) + " times.");
-                }
+//                for (int i = 0; i < 2; i++) {
+//                    Logger.d(TAG, "clicked " + String.valueOf(count) + " times.");
+//                }
                 Logger.e(TAG, "Error occured", "generated error");
             }
         });
@@ -56,6 +58,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Logger.setFilename("newFile.dat");
+            }
+        });
+        sendButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Logger.sendLog(getApplicationContext(), new String[]{"goldenhead777@gmail.com"});
             }
         });
     }
