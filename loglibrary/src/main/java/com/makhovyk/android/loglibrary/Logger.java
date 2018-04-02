@@ -26,27 +26,23 @@ public class Logger {
 
     private static final int BUFFER = 1024;
 
-    public static boolean isZipable = true;
-    public static boolean rewriteOnFilling = true;
-    public static boolean isEnabled = true;
-    public static String filename = "log.dat";
-    public static String appFolderName = "LogLibrary";
-    public static long maxSize = 1;
-
+    private static boolean isZipable = true;
+    private static boolean rewriteOnFilling = true;
+    private static long maxSize = 1024;
     private static String PATH = "";
     private static File file;
     private static File directory;
-    private static long sizeInMB = 1024;
+    private static boolean isEnabled = true;
+    private static String appFolderName = "LogLibrary";
+    private static String filename = "log.dat";
     private static RandomAccessFile fileWithSize;
 
 
-    public static void d(String tag, String msg){
-        if (isEnabled){
-            PATH = Environment.getExternalStorageDirectory().getPath() + "/" + appFolderName + "/";
-            directory = new File(PATH);
-            directory.mkdirs();
-            file = new File(directory,filename);
-           // Log.d(tag, PATH);
+    public static void d(String tag, String msg) {
+        if (isEnabled) {
+            configFile();
+            file = new File(directory, filename);
+            Log.d(tag, PATH);
             int result = 0;
             try {
                 if (!file.exists()) {
@@ -58,8 +54,8 @@ public class Logger {
 //                    Log.d(tag, "created");
 
                 }
-                if (file.length() > (sizeInMB*sizeInMB)){
-                    Log.d(tag, "size " + String.valueOf((double)file.length()/(1024*1024 * maxSize)) + "Mb");
+                if (file.length() > (maxSize * maxSize)) {
+                    Log.d(tag, "size " + String.valueOf((double) file.length() / (maxSize * maxSize)) + "Mb");
                     if (rewriteOnFilling) {
                         new FileOutputStream(file);
                     }
@@ -86,19 +82,20 @@ public class Logger {
         }
     }
 
-    public static void e(String tag, String msg){
+    public static void e(String tag, String msg) {
 
     }
 
-    public static void zipLog(){
-        PATH = Environment.getExternalStorageDirectory().getPath() + "/" + appFolderName + "/";
-        directory = new File(PATH);
-        directory.mkdirs();
-        file = new File(directory,filename);
-        zip(directory+"/"+filename, directory+"/zipLog.zip");
+    public static File zipLog() {
+        if (isZipable) {
+            configFile();
+            file = new File(directory, filename);
+            return zip(directory + "/" + filename, directory + "/zipLog.zip");
+        }
+        return null;
     }
 
-    private static void zip(String file, String zipFileName) {
+    private static File zip(String file, String zipFileName) {
         try {
             BufferedInputStream origin = null;
             FileOutputStream dest = new FileOutputStream(zipFileName);
@@ -106,24 +103,76 @@ public class Logger {
                     dest));
             byte data[] = new byte[BUFFER];
 
+            FileInputStream fi = new FileInputStream(file);
+            origin = new BufferedInputStream(fi, BUFFER);
 
-                Log.v("Compress", "Adding: " + file);
-                FileInputStream fi = new FileInputStream(file);
-                origin = new BufferedInputStream(fi, BUFFER);
+            ZipEntry entry = new ZipEntry(file.substring(file.lastIndexOf("/") + 1));
+            out.putNextEntry(entry);
+            int count;
 
-                ZipEntry entry = new ZipEntry(file.substring(file.lastIndexOf("/") + 1));
-                out.putNextEntry(entry);
-                int count;
-
-                while ((count = origin.read(data, 0, BUFFER)) != -1) {
-                    out.write(data, 0, count);
-                }
-                origin.close();
+            while ((count = origin.read(data, 0, BUFFER)) != -1) {
+                out.write(data, 0, count);
+            }
+            origin.close();
 
 
             out.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return new File(zipFileName);
     }
+
+    public static boolean isEnabled() {
+        return isEnabled;
+    }
+
+    public static void setEnabled(boolean isEnabled) {
+        Logger.isEnabled = isEnabled;
+    }
+
+    public static String getFilename() {
+        return filename;
+    }
+
+    public static void setFilename(String filename) {
+        PATH = Environment.getExternalStorageDirectory().getPath() + "/" + appFolderName + "/";
+        directory = new File(PATH);
+        directory.mkdirs();
+        File oldFile = new File(directory, Logger.filename);
+        File latestname = new File(directory, filename);
+        oldFile.renameTo(latestname);
+        Logger.filename = filename;
+    }
+
+    public static boolean isZipable() {
+        return isZipable;
+    }
+
+    public static void setZipable(boolean isZipable) {
+        Logger.isZipable = isZipable;
+    }
+
+    public static long getMaxSize() {
+        return maxSize;
+    }
+
+    public static void setMaxSize(long maxSize) {
+        Logger.maxSize = maxSize;
+    }
+
+    public static boolean isRewriteOnFilling() {
+        return rewriteOnFilling;
+    }
+
+    public static void setRewriteOnFilling(boolean rewriteOnFilling) {
+        Logger.rewriteOnFilling = rewriteOnFilling;
+    }
+
+    private static void configFile() {
+        PATH = Environment.getExternalStorageDirectory().getPath() + "/" + appFolderName + "/";
+        directory = new File(PATH);
+        directory.mkdirs();
+    }
+
 }

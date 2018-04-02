@@ -25,6 +25,7 @@ public class MainActivity extends AppCompatActivity {
     int count = 0;
     Button button;
     Button zipButton;
+    Button renameButton;
     final String TAG = "logTAG";
 
     @Override
@@ -34,11 +35,12 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         button = findViewById(R.id.log_button);
         zipButton = findViewById(R.id.zipLog);
+        renameButton = findViewById(R.id.renameLog);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 count++;
-                for (int i = 0;i<100; i++) {
+                for (int i = 0; i < 2; i++) {
                     Logger.d(TAG, "clicked " + String.valueOf(count) + " times.");
                 }
             }
@@ -47,6 +49,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Logger.zipLog();
+            }
+        });
+        renameButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Logger.setFilename("newFile.dat");
             }
         });
     }
